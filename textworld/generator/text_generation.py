@@ -150,7 +150,10 @@ def assign_description_to_room(room, game, grammar):
     Assign a descripton to a room.
     """
     # Add the decorative text
-    room_desc = expand_clean_replace("#dec#\n\n", grammar, room, game)
+    if grammar.options.hide_location:
+        room_desc = ""
+    else:
+        room_desc = expand_clean_replace("#dec#\n\n", grammar, room, game)
 
     # Convert the objects into groupings based on adj/noun/type
 

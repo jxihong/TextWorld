@@ -21,13 +21,15 @@ class TextWorldEnv(textworld.Environment):
     Environment for playing games by TextWorld.
     """
 
-    def __init__(self, infos: Optional[EnvInfos] = None) -> None:
+    def __init__(self, infos: Optional[EnvInfos] = None,
+                 no_redundant_commands: bool = True) -> None:
         """
         Arguments:
             infos: Information to be included in the game state. By
                    default, only the game's narrative is included.
         """
         super().__init__(infos)
+        self._no_redundant_commands = no_redundant_commands
         self._gamefile = None
         self._game = None
         self._inform7 = None
@@ -93,10 +95,15 @@ class TextWorldEnv(textworld.Environment):
             self.state["last_action"] = self._inform7.get_human_readable_action(self._last_action)
 
         self.state["_valid_actions"] = self._game_progression.valid_actions
-        self.state["_valid_commands"] = self._inform7.gen_commands_from_actions(self._game_progression.valid_actions)
+        self.state["_valid_commands"] = self._inform7.gen_commands_from_actions(self.state["_valid_actions"])
+
         # To guarantee the order from one execution to another, we sort the commands.
-        # Remove any potential duplicate commands (they would lead to the same result anyway).
+        # Remove any potential duplicate commands (they would lead to the same result anyway).        
         self.state["admissible_commands"] = sorted(set(self.state["_valid_commands"]))
+        if self._no_redundant_commands:
+            redundant = ["examine", "look", "inventory"]
+            self.state["admissible_commands"] = list(
+                c for c in self.state["admissible_commands"] if not any(a in c for a in redundant))
 
         if self.infos.moves:
             self.state["moves"] = self._moves
@@ -141,6 +148,8 @@ class TextWorldEnv(textworld.Environment):
         self._gather_infos()
         self.state["score"] = self._game_progression.score
         self.state["done"] = self.state["won"] or self.state["lost"]
+        self.state.raw = "\n".join(self.state.raw.split("\n")[1:])
+        self.state.feedback = "\n".join(self.state.feedback.split("\n")[1:])
         return self.state, self.state["score"], self.state["done"]
 
     def copy(self) -> "TextWorldEnv":
