@@ -21,8 +21,7 @@ class TextWorldEnv(textworld.Environment):
     Environment for playing games by TextWorld.
     """
 
-    def __init__(self, infos: Optional[EnvInfos] = None,
-                 no_redundant_commands: bool = True) -> None:
+    def __init__(self, infos: Optional[EnvInfos] = None) -> None:
         """
         Arguments:
             infos: Information to be included in the game state. By
@@ -100,10 +99,6 @@ class TextWorldEnv(textworld.Environment):
         # To guarantee the order from one execution to another, we sort the commands.
         # Remove any potential duplicate commands (they would lead to the same result anyway).        
         self.state["admissible_commands"] = sorted(set(self.state["_valid_commands"]))
-        if self._no_redundant_commands:
-            redundant = ["examine", "look", "inventory"]
-            self.state["admissible_commands"] = list(
-                c for c in self.state["admissible_commands"] if not any(a in c for a in redundant))
 
         if self.infos.moves:
             self.state["moves"] = self._moves
