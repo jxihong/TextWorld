@@ -148,8 +148,6 @@ class TextWorldEnv(textworld.Environment):
         self._gather_infos()
         self.state["score"] = self._game_progression.score
         self.state["done"] = self.state["won"] or self.state["lost"]
-        self.state.raw = "\n".join(self.state.raw.split("\n")[1:])
-        self.state.feedback = "\n".join(self.state.feedback.split("\n")[1:])
         return self.state, self.state["score"], self.state["done"]
 
     def copy(self) -> "TextWorldEnv":
